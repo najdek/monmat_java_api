@@ -1,19 +1,23 @@
 package pl.monmat.manager.api;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "orders")
 public class Order {
+    @Getter
     @Id // klucz glowny
-    private String id; //
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "sys_id")
+    private Long sysId;
+
+    @Column(name = "id", unique = true, nullable = false)
+    private String orderNumber;
+
+    @Getter
+    @Setter
     private String email;
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
-
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
 }

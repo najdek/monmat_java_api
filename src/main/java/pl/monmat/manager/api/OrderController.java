@@ -1,9 +1,11 @@
 package pl.monmat.manager.api;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class OrderController {
@@ -16,6 +18,11 @@ public class OrderController {
     @GetMapping("/api/test")
     public List<Order> getAll() {
         return repository.findAll();
+    }
+
+    @GetMapping("/api/order/{sysId}")
+    public Optional<Order> getById(@PathVariable Long sysId) {
+        return repository.findById(sysId);
     }
 
 }
