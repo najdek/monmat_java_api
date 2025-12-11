@@ -8,7 +8,7 @@ import lombok.Setter;
 @Table(name = "orders")
 public class Order {
     @Getter
-    @Id // klucz glowny
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "sys_id")
     private Long sysId;
