@@ -1,5 +1,7 @@
 package pl.monmat.manager.api;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,9 +17,9 @@ public class OrderController {
         this.repository = repository;
     }
 
-    @GetMapping("/api/test")
-    public List<Order> getAll() {
-        return repository.findAll();
+    @GetMapping("/api/orders/{page}")
+    public Page<Order> getAll(@PathVariable Integer page) {
+        return repository.findAll(Pageable.ofSize(100));
     }
 
     @GetMapping("/api/order/{sysId}")
