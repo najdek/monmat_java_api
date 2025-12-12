@@ -19,13 +19,13 @@ public class OrderController {
 
     @GetMapping("/api/orders/{page}")
     public Page<Order> getAll(@PathVariable Integer page) {
-        Sort sort = Sort.by("sysId").descending();
+        Sort sort = Sort.by("id").descending();
         return repository.findAll(PageRequest.of(page, 100, sort));
     }
 
-    @GetMapping("/api/order/{sysId}")
-    public Optional<Order> getById(@PathVariable Long sysId) {
-        return repository.findById(sysId);
+    @GetMapping("/api/order/{id}")
+    public Optional<Order> getById(@PathVariable Long id) {
+        return repository.findById(id);
     }
 
 
