@@ -3,7 +3,9 @@ package pl.monmat.manager.api;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 import pl.monmat.manager.api.json.Address;
 import pl.monmat.manager.api.json.InvoiceDetails;
@@ -63,9 +65,11 @@ public class Order {
     private String customerComment;
     private String internalNotes;
     private Boolean isSmart;
+
+    @CreationTimestamp
     private LocalDateTime createdAt;
+
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-
 
 }
