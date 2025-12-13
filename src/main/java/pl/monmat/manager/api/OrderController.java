@@ -22,18 +22,25 @@ public class OrderController {
         this.orderService = orderService;
     }
 
-    @GetMapping("/api/orders/{page}")
-    public Page<Order> getAll(@PathVariable Integer page) {
+    @GetMapping("/api/orders")
+    public Page<Order> getAll(
+            @RequestParam(defaultValue = "0")   Integer page,
+            @RequestParam(defaultValue = "100") Integer size
+    ) {
         Sort sort = Sort.by("id").descending();
-        return repository.findAll(PageRequest.of(page, 100, sort));
+        return repository.findAll(PageRequest.of(
+                page,
+                size,
+                sort
+        ));
     }
 
-    @GetMapping("/api/order/{id}")
+    @GetMapping("/api/orders/{id}")
     public Optional<Order> getById(@PathVariable Long id) {
         return repository.findById(id);
     }
 
-    @PostMapping("/api/order")
+    @PostMapping("/api/orders")
     public ResponseEntity<Order> create(@RequestBody @Valid CreateOrderRequest request) {
 
         Order savedOrder = orderService.createOrder(request);
