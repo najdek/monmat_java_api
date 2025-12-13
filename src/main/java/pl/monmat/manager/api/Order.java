@@ -8,7 +8,11 @@ import org.hibernate.type.SqlTypes;
 import pl.monmat.manager.api.json.Address;
 import pl.monmat.manager.api.json.InvoiceDetails;
 
-import java.sql.Date;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "orders")
@@ -18,6 +22,7 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Address shippingAddress;
@@ -25,6 +30,41 @@ public class Order {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private InvoiceDetails invoiceDetails;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> items = new ArrayList<>();
+
+    @Column(columnDefinition = "char(3)")
+    @JdbcTypeCode(SqlTypes.CHAR)
+    private String paidCurrency;
+
+    @Column(columnDefinition = "char(3)")
+    @JdbcTypeCode(SqlTypes.CHAR)
+    private String shippingCostCurrency;
+
+    private String orderNumber;
+    private UUID uuid;
+    private String email;
+    private String phoneNumber;
+    private String username;
+    private Boolean is_guest;
+    private BigDecimal totalPaidAmount;
+    private BigDecimal shippingCost;
+    private String status; // currently not used
+    private LocalDateTime boughtAt;
+    private LocalDateTime paymentAt;
+    private LocalDateTime shippedAt;
+    private LocalDateTime completedAt;
+    private Boolean needsInvoice;
+    private String deliveryMethodId;
+    private String deliveryMethodName;
+    private String pickupPointId;
+    private String trackingNumbers;
+    private String customerComment;
+    private String internalNotes;
+    private Boolean isSmart;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
 
 
