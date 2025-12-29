@@ -7,6 +7,7 @@ import pl.monmat.manager.api.OrderItem;
 import pl.monmat.manager.api.OrderRepository;
 import pl.monmat.manager.api.dto.CreateOrderRequest;
 import pl.monmat.manager.api.dto.OrderItemRequest;
+import pl.monmat.manager.api.dto.PatchOrderRequest;
 import pl.monmat.manager.api.json.Address;
 
 import java.math.BigDecimal;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.UUID;
+import java.util.Optional;
 
 @Service
 public class OrderService {
@@ -69,6 +71,48 @@ public class OrderService {
 
         return orderRepository.save(order);
 
+    }
+
+    @Transactional
+    public Order patchOrder(Long orderId, PatchOrderRequest patch) {
+        Optional<Order> orderOpt = orderRepository.findById(orderId);
+
+        if (orderOpt.isEmpty()) {
+            throw new IllegalArgumentException("Order with ID " + orderId + " not found");
+        }
+
+        Order order = orderOpt.get();
+
+        // Update only non-null fields
+        if (patch.trackingNumbers() != null) {
+            order.setTrackingNumbers(patch.trackingNumbers());
+        }
+        if (patch.status() != null) {
+            order.setStatus(patch.status());
+        }
+        if (patch.internalNotes() != null) {
+            order.setInternalNotes(patch.internalNotes());
+        }
+        if (patch.customerComment() != null) {
+            order.setCustomerComment(patch.customerComment());
+        }
+        if (patch.shippedAt() != null) {
+            order.setShippedAt(patch.shippedAt());
+        }
+        if (patch.completedAt() != null) {
+            order.setCompletedAt(patch.completedAt());
+        }
+        if (patch.deliveryMethodId() != null) {
+            order.setDeliveryMethodId(patch.deliveryMethodId());
+        }
+        if (patch.deliveryMethodName() != null) {
+            order.setDeliveryMethodName(patch.deliveryMethodName());
+        }
+        if (patch.pickupPointId() != null) {
+            order.setPickupPointId(patch.pickupPointId());
+        }
+
+        return orderRepository.save(order);
     }
 
 

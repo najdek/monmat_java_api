@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.monmat.manager.api.dto.CreateOrderRequest;
+import pl.monmat.manager.api.dto.PatchOrderRequest;
 import pl.monmat.manager.api.service.OrderService;
 
 import java.util.Optional;
@@ -47,6 +48,19 @@ public class OrderController {
 
         // return 201 - created status
         return ResponseEntity.status(HttpStatus.CREATED).body(savedOrder);
+    }
+
+    @PatchMapping("/api/orders/{id}")
+    public ResponseEntity<Order> patchOrder(
+            @PathVariable Long id,
+            @RequestBody PatchOrderRequest patch) {
+
+        try {
+            Order updatedOrder = orderService.patchOrder(id, patch);
+            return ResponseEntity.ok(updatedOrder);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
 
