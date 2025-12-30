@@ -7,8 +7,10 @@ public record PatchOrderRequest(
         String status,
         String internalNotes,
         String customerComment,
-        LocalDateTime shippedAt,
+        LocalDateTime acceptedAt,
         LocalDateTime completedAt,
+        LocalDateTime shippedAt,
+        LocalDateTime deliveredAt,
         String deliveryMethodId,
         String deliveryMethodName,
         String pickupPointId

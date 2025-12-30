@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public record CreateOrderRequest (
+    String externalOrderId,
     @NotNull String email,
     String phoneNumber,
 

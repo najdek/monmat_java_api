@@ -44,8 +44,8 @@ public class Order {
     @JdbcTypeCode(SqlTypes.CHAR)
     private String shippingCostCurrency;
 
-    private String orderNumber;
     private UUID uuid;
+    private String externalOrderId;
     private String email;
     private String phoneNumber;
     private String username;
@@ -55,8 +55,10 @@ public class Order {
     private String status; // currently not used
     private LocalDateTime boughtAt;
     private LocalDateTime paymentAt;
-    private LocalDateTime shippedAt;
+    private LocalDateTime acceptedAt;
     private LocalDateTime completedAt;
+    private LocalDateTime shippedAt;
+    private LocalDateTime deliveredAt;
     private Boolean needsInvoice;
     private String deliveryMethodId;
     private String deliveryMethodName;

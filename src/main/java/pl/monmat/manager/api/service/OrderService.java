@@ -29,8 +29,8 @@ public class OrderService {
     @Transactional // all or nothing
     public Order createOrder(CreateOrderRequest request) {
         Order order = new Order();
-        order.setOrderNumber(UUID.randomUUID().toString());
         order.setUuid(UUID.randomUUID());
+        order.setExternalOrderId(request.externalOrderId());
         order.setEmail(request.email());
         order.setPhoneNumber(request.phoneNumber());
         order.setBoughtAt(LocalDateTime.now());
@@ -96,11 +96,17 @@ public class OrderService {
         if (patch.customerComment() != null) {
             order.setCustomerComment(patch.customerComment());
         }
-        if (patch.shippedAt() != null) {
-            order.setShippedAt(patch.shippedAt());
+        if (patch.acceptedAt() != null) {
+            order.setAcceptedAt(patch.acceptedAt());
         }
         if (patch.completedAt() != null) {
             order.setCompletedAt(patch.completedAt());
+        }
+        if (patch.shippedAt() != null) {
+            order.setShippedAt(patch.shippedAt());
+        }
+        if (patch.deliveredAt() != null) {
+            order.setDeliveredAt(patch.deliveredAt());
         }
         if (patch.deliveryMethodId() != null) {
             order.setDeliveryMethodId(patch.deliveryMethodId());
