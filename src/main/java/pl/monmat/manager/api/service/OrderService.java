@@ -74,11 +74,11 @@ public class OrderService {
     }
 
     @Transactional
-    public Order patchOrder(Long orderId, PatchOrderRequest patch) {
-        Optional<Order> orderOpt = orderRepository.findById(orderId);
+    public Order patchOrder(UUID uuid, PatchOrderRequest patch) {
+        Optional<Order> orderOpt = orderRepository.findByUuid(uuid);
 
         if (orderOpt.isEmpty()) {
-            throw new IllegalArgumentException("Order with ID " + orderId + " not found");
+            throw new IllegalArgumentException("Order with UUID " + uuid + " not found");
         }
 
         Order order = orderOpt.get();

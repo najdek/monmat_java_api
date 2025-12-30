@@ -12,6 +12,7 @@ import pl.monmat.manager.api.dto.PatchOrderRequest;
 import pl.monmat.manager.api.service.OrderService;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 public class OrderController {
@@ -36,9 +37,9 @@ public class OrderController {
         ));
     }
 
-    @GetMapping("/api/orders/{id}")
-    public Optional<Order> getById(@PathVariable Long id) {
-        return repository.findById(id);
+    @GetMapping("/api/orders/{uuid}")
+    public Optional<Order> getOrderByUuid(@PathVariable UUID uuid) {
+        return repository.findByUuid(uuid);
     }
 
     @PostMapping("/api/orders")
@@ -50,13 +51,13 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.CREATED).body(savedOrder);
     }
 
-    @PatchMapping("/api/orders/{id}")
+    @PatchMapping("/api/orders/{uuid}")
     public ResponseEntity<Order> patchOrder(
-            @PathVariable Long id,
+            @PathVariable UUID uuid,
             @RequestBody PatchOrderRequest patch) {
 
         try {
-            Order updatedOrder = orderService.patchOrder(id, patch);
+            Order updatedOrder = orderService.patchOrder(uuid, patch);
             return ResponseEntity.ok(updatedOrder);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();

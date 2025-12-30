@@ -52,7 +52,7 @@ public class Order {
     private Boolean is_guest;
     private BigDecimal totalPaidAmount;
     private BigDecimal shippingCost;
-    private String status; // currently not used
+    private String status;
     private LocalDateTime boughtAt;
     private LocalDateTime paymentAt;
     private LocalDateTime acceptedAt;
