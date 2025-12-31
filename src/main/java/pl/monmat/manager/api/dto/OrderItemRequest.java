@@ -6,5 +6,6 @@ public record OrderItemRequest(
     String offerId,
     String name,
     int quantity,
-    BigDecimal unitPrice
+    BigDecimal unitPrice,
+    String unitPriceCurrency
 ) {}

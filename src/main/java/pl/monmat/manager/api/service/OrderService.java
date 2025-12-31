@@ -56,7 +56,7 @@ public class OrderService {
             item.setName(itemReq.name());
             item.setQuantity(itemReq.quantity());
             item.setUnitPrice(itemReq.unitPrice());
-            item.setCurrency("PLN"); // change later
+            item.setCurrency(itemReq.unitPriceCurrency());
 
             item.setOrder(order);
 
