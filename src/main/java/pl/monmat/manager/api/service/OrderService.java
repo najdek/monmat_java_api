@@ -33,7 +33,8 @@ public class OrderService {
         order.setExternalOrderId(request.externalOrderId());
         order.setEmail(request.email());
         order.setPhoneNumber(request.phoneNumber());
-        order.setBoughtAt(LocalDateTime.now());
+        order.setBoughtAt(request.boughtAt() != null ? request.boughtAt() : LocalDateTime.now());
+        order.setCustomId(generateCustomId(order.getBoughtAt()));
         order.setStatus("NEW");
 
         order.setShippingCost(request.shippingCost());
@@ -119,6 +120,18 @@ public class OrderService {
         }
 
         return orderRepository.save(order);
+    }
+
+    private String generateCustomId(LocalDateTime orderDateTime) {
+        String prefix = java.time.format.DateTimeFormatter.ofPattern("yyMM").format(orderDateTime);
+        return orderRepository.findLatestOrder()
+                .map(Order::getCustomId)
+                .filter(id -> id.startsWith(prefix))
+                .map(id -> {
+                    int num = Integer.parseInt(id.split("/")[1]);
+                    return prefix + "/" + String.format("%05d", num + 1);
+                })
+                .orElse(prefix + "/00001");
     }
 
 
