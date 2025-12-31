@@ -1,41 +1,36 @@
-package pl.monmat.manager.api.service;
+package pl.monmat.manager.api.order;
 
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import pl.monmat.manager.api.Order;
-import pl.monmat.manager.api.OrderItem;
-import pl.monmat.manager.api.OrderRepository;
-import pl.monmat.manager.api.dto.CreateOrderRequest;
-import pl.monmat.manager.api.dto.OrderItemRequest;
-import pl.monmat.manager.api.dto.PatchOrderRequest;
-import pl.monmat.manager.api.json.Address;
+import pl.monmat.manager.api.order.dto.CreateOrderRequest;
+import pl.monmat.manager.api.order.dto.OrderItemRequest;
+import pl.monmat.manager.api.order.dto.PatchOrderRequest;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.UUID;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class OrderService {
-
+    private static final DateTimeFormatter CUSTOM_ID_FORMATTER = DateTimeFormatter.ofPattern("yyMM");
     private final OrderRepository orderRepository;
 
     public OrderService(OrderRepository orderRepository) {
         this.orderRepository = orderRepository;
     }
 
-    @Transactional // all or nothing
+    @Transactional
     public Order createOrder(CreateOrderRequest request) {
-        // Check if order with this external ID already exists
         if (request.externalOrderId() != null && !request.externalOrderId().isEmpty()) {
-            if (orderRepository.existsByExternalOrderId(request.externalOrderId())) {
-                // Order already exists, return existing one
-                return orderRepository.findByExternalOrderId(request.externalOrderId()).orElse(null);
+            Optional<Order> existing = orderRepository.findByExternalOrderId(request.externalOrderId());
+            if (existing.isPresent()) {
+                return existing.get();
             }
         }
-
         Order order = new Order();
         order.setUuid(UUID.randomUUID());
         order.setExternalOrderId(request.externalOrderId());
@@ -44,44 +39,23 @@ public class OrderService {
         order.setBoughtAt(request.boughtAt() != null ? request.boughtAt() : LocalDateTime.now());
         order.setCustomId(generateCustomId(order.getBoughtAt()));
         order.setStatus("NEW");
-
-        // Buyer info
         order.setUsername(request.username());
-        order.setIs_guest(request.isGuest());
-
-        // Payment info
+        order.setIsGuest(request.isGuest());
         order.setTotalPaidAmount(request.totalPaidAmount());
         order.setPaidCurrency(request.paidCurrency());
         order.setPaymentAt(request.paymentAt());
-
-        // Shipping cost
         order.setShippingCost(request.shippingCost());
         order.setShippingCostCurrency(request.shippingCostCurrency());
-
-        // Delivery method
         order.setDeliveryMethodId(request.deliveryMethodId());
         order.setDeliveryMethodName(request.deliveryMethodName());
         order.setPickupPointId(request.pickupPointId());
         order.setIsSmart(request.isSmart());
-
-        // Invoice
         order.setNeedsInvoice(request.needsInvoice());
-        if (request.invoiceDetails() != null) {
-            order.setInvoiceDetails(request.invoiceDetails());
-        }
-
-        // Comments
+        order.setInvoiceDetails(request.invoiceDetails());
         order.setCustomerComment(request.customerComment());
-
-        // Shipping address from DTO
-        if (request.shippingAddress() != null) {
-            order.setShippingAddress(request.shippingAddress());
-        }
-
-        // Process items
+        order.setShippingAddress(request.shippingAddress());
         List<OrderItem> entityItems = new ArrayList<>();
         BigDecimal calculatedTotal = BigDecimal.ZERO;
-
         if (request.items() != null) {
             for (OrderItemRequest itemReq : request.items()) {
                 OrderItem item = new OrderItem();
@@ -90,38 +64,30 @@ public class OrderService {
                 item.setQuantity(itemReq.quantity());
                 item.setUnitPrice(itemReq.unitPrice());
                 item.setCurrency(itemReq.unitPriceCurrency());
+                item.setAttributes(itemReq.attributes());
                 item.setOrder(order);
                 entityItems.add(item);
-
                 if (itemReq.unitPrice() != null) {
                     BigDecimal lineTotal = itemReq.unitPrice().multiply(BigDecimal.valueOf(itemReq.quantity()));
                     calculatedTotal = calculatedTotal.add(lineTotal);
                 }
             }
         }
-
         order.setItems(entityItems);
-
-        // Use provided total or calculated total
         if (order.getTotalPaidAmount() == null) {
             order.setTotalPaidAmount(calculatedTotal);
         }
-
         return orderRepository.save(order);
-
     }
 
     @Transactional
-    public Order patchOrder(UUID uuid, PatchOrderRequest patch) {
-        Optional<Order> orderOpt = orderRepository.findByUuid(uuid);
+    public Optional<Order> patchOrder(UUID uuid, PatchOrderRequest patch) {
+        return orderRepository.findByUuid(uuid)
+                .map(order -> applyPatch(order, patch))
+                .map(orderRepository::save);
+    }
 
-        if (orderOpt.isEmpty()) {
-            throw new IllegalArgumentException("Order with UUID " + uuid + " not found");
-        }
-
-        Order order = orderOpt.get();
-
-        // Update only non-null fields
+    private Order applyPatch(Order order, PatchOrderRequest patch) {
         if (patch.trackingNumbers() != null) {
             order.setTrackingNumbers(patch.trackingNumbers());
         }
@@ -155,12 +121,11 @@ public class OrderService {
         if (patch.pickupPointId() != null) {
             order.setPickupPointId(patch.pickupPointId());
         }
-
-        return orderRepository.save(order);
+        return order;
     }
 
     private String generateCustomId(LocalDateTime orderDateTime) {
-        String prefix = java.time.format.DateTimeFormatter.ofPattern("yyMM").format(orderDateTime);
+        String prefix = CUSTOM_ID_FORMATTER.format(orderDateTime);
         return orderRepository.findLastOrderInMonth(prefix)
                 .map(Order::getCustomId)
                 .map(id -> {
@@ -169,6 +134,4 @@ public class OrderService {
                 })
                 .orElse(prefix + "/00001");
     }
-
-
 }

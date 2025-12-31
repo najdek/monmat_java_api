@@ -1,4 +1,4 @@
-package pl.monmat.manager.api.allegro.dto;
+package pl.monmat.manager.api.allegro.api;
 
 public record Buyer(
         String id,
@@ -11,10 +11,6 @@ public record Buyer(
         boolean guest,
         BuyerAddress address
 ) {
-    public record BuyerAddress(
-            String street,
-            String city,
-            String postCode,
-            String countryCode
-    ) {}
+    public record BuyerAddress(String street, String city, String postCode, String countryCode) {
+    }
 }

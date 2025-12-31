@@ -1,4 +1,4 @@
-package pl.monmat.manager.api;
+package pl.monmat.manager.api.common;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,11 +13,11 @@ import lombok.Setter;
 @Table(name = "system_settings")
 @Getter
 @Setter
-@NoArgsConstructor @AllArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 public class SystemSetting {
     @Id
     private String settingKey;
-
     @Column(length = 4096)
     private String settingValue;
 }

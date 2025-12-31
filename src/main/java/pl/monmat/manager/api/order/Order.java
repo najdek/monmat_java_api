@@ -1,4 +1,4 @@
-package pl.monmat.manager.api;
+package pl.monmat.manager.api.order;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -7,8 +7,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
-import pl.monmat.manager.api.json.Address;
-import pl.monmat.manager.api.json.InvoiceDetails;
+import pl.monmat.manager.api.common.model.Address;
+import pl.monmat.manager.api.common.model.InvoiceDetails;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -18,43 +18,36 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "orders")
-@Getter @Setter
+@Getter
+@Setter
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @Column(unique = true)
     private String customId;
-
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Address shippingAddress;
-
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private InvoiceDetails invoiceDetails;
-
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
-
     @Column(columnDefinition = "char(3)")
     @JdbcTypeCode(SqlTypes.CHAR)
     private String paidCurrency;
-
     @Column(columnDefinition = "char(3)")
     @JdbcTypeCode(SqlTypes.CHAR)
     private String shippingCostCurrency;
-
     private UUID uuid;
-
     @Column(unique = true)
     private String externalOrderId;
-
     private String email;
     private String phoneNumber;
     private String username;
-    private Boolean is_guest;
+    @Column(name = "is_guest")
+    private Boolean isGuest;
     private BigDecimal totalPaidAmount;
     private BigDecimal shippingCost;
     private String status;
@@ -72,11 +65,8 @@ public class Order {
     private String customerComment;
     private String internalNotes;
     private Boolean isSmart;
-
     @CreationTimestamp
     private LocalDateTime createdAt;
-
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
 }
