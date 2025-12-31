@@ -9,6 +9,6 @@ import java.util.UUID;
 public interface OrderRepository extends JpaRepository<Order, Long> {
     Optional<Order> findByUuid(UUID uuid);
 
-    @Query(value = "SELECT * FROM orders ORDER BY id DESC LIMIT 1", nativeQuery = true)
-    Optional<Order> findLatestOrder();
+    @Query(value = "SELECT * FROM orders WHERE custom_id LIKE CONCAT(:prefix, '%') ORDER BY id DESC LIMIT 1", nativeQuery = true)
+    Optional<Order> findLastOrderInMonth(String prefix);
 }

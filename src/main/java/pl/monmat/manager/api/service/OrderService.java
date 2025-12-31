@@ -124,9 +124,8 @@ public class OrderService {
 
     private String generateCustomId(LocalDateTime orderDateTime) {
         String prefix = java.time.format.DateTimeFormatter.ofPattern("yyMM").format(orderDateTime);
-        return orderRepository.findLatestOrder()
+        return orderRepository.findLastOrderInMonth(prefix)
                 .map(Order::getCustomId)
-                .filter(id -> id.startsWith(prefix))
                 .map(id -> {
                     int num = Integer.parseInt(id.split("/")[1]);
                     return prefix + "/" + String.format("%05d", num + 1);
