@@ -47,7 +47,10 @@ public class Order {
     private String shippingCostCurrency;
 
     private UUID uuid;
+
+    @Column(unique = true)
     private String externalOrderId;
+
     private String email;
     private String phoneNumber;
     private String username;

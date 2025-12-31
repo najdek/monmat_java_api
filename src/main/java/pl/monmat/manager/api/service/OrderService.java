@@ -28,6 +28,14 @@ public class OrderService {
 
     @Transactional // all or nothing
     public Order createOrder(CreateOrderRequest request) {
+        // Check if order with this external ID already exists
+        if (request.externalOrderId() != null && !request.externalOrderId().isEmpty()) {
+            if (orderRepository.existsByExternalOrderId(request.externalOrderId())) {
+                // Order already exists, return existing one
+                return orderRepository.findByExternalOrderId(request.externalOrderId()).orElse(null);
+            }
+        }
+
         Order order = new Order();
         order.setUuid(UUID.randomUUID());
         order.setExternalOrderId(request.externalOrderId());
@@ -37,38 +45,67 @@ public class OrderService {
         order.setCustomId(generateCustomId(order.getBoughtAt()));
         order.setStatus("NEW");
 
+        // Buyer info
+        order.setUsername(request.username());
+        order.setIs_guest(request.isGuest());
+
+        // Payment info
+        order.setTotalPaidAmount(request.totalPaidAmount());
+        order.setPaidCurrency(request.paidCurrency());
+        order.setPaymentAt(request.paymentAt());
+
+        // Shipping cost
         order.setShippingCost(request.shippingCost());
+        order.setShippingCostCurrency(request.shippingCostCurrency());
 
-        // map address from DTO to JSONB
+        // Delivery method
+        order.setDeliveryMethodId(request.deliveryMethodId());
+        order.setDeliveryMethodName(request.deliveryMethodName());
+        order.setPickupPointId(request.pickupPointId());
+        order.setIsSmart(request.isSmart());
 
-        Address addr = new Address();
-        addr.setStreet(request.street());
-        addr.setCity(request.city());
-        // add rest later
-        order.setShippingAddress(addr);
+        // Invoice
+        order.setNeedsInvoice(request.needsInvoice());
+        if (request.invoiceDetails() != null) {
+            order.setInvoiceDetails(request.invoiceDetails());
+        }
 
-        BigDecimal totalAmount = BigDecimal.ZERO;
+        // Comments
+        order.setCustomerComment(request.customerComment());
 
+        // Shipping address from DTO
+        if (request.shippingAddress() != null) {
+            order.setShippingAddress(request.shippingAddress());
+        }
+
+        // Process items
         List<OrderItem> entityItems = new ArrayList<>();
+        BigDecimal calculatedTotal = BigDecimal.ZERO;
 
-        for (OrderItemRequest itemReq : request.items()) {
-            OrderItem item = new OrderItem();
-            item.setExternalOfferId(itemReq.offerId());
-            item.setName(itemReq.name());
-            item.setQuantity(itemReq.quantity());
-            item.setUnitPrice(itemReq.unitPrice());
-            item.setCurrency(itemReq.unitPriceCurrency());
+        if (request.items() != null) {
+            for (OrderItemRequest itemReq : request.items()) {
+                OrderItem item = new OrderItem();
+                item.setExternalOfferId(itemReq.offerId());
+                item.setName(itemReq.name());
+                item.setQuantity(itemReq.quantity());
+                item.setUnitPrice(itemReq.unitPrice());
+                item.setCurrency(itemReq.unitPriceCurrency());
+                item.setOrder(order);
+                entityItems.add(item);
 
-            item.setOrder(order);
-
-            entityItems.add(item);
-
-            BigDecimal lineTotal = itemReq.unitPrice().multiply(BigDecimal.valueOf(itemReq.quantity()));
-            totalAmount = totalAmount.add(lineTotal);
+                if (itemReq.unitPrice() != null) {
+                    BigDecimal lineTotal = itemReq.unitPrice().multiply(BigDecimal.valueOf(itemReq.quantity()));
+                    calculatedTotal = calculatedTotal.add(lineTotal);
+                }
+            }
         }
 
         order.setItems(entityItems);
-        order.setTotalPaidAmount(totalAmount);
+
+        // Use provided total or calculated total
+        if (order.getTotalPaidAmount() == null) {
+            order.setTotalPaidAmount(calculatedTotal);
+        }
 
         return orderRepository.save(order);
 
