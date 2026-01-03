@@ -195,82 +195,114 @@ public class AllegroSyncService {
     }
 
     private BuyerInfo extractBuyerInfo(CheckoutForm form, Address shippingAddress) {
-        String email = "";
-        String username = "";
-        Boolean isGuest = null;
-        String deliveryPhone = shippingAddress.getPhoneNumber() != null ? shippingAddress.getPhoneNumber() : "";
-        String buyerPhone = "";
-        if (form.buyer() != null) {
-            email = form.buyer().email() != null ? form.buyer().email() : "";
-            username = form.buyer().login() != null ? form.buyer().login() : "";
-            isGuest = form.buyer().guest();
-            buyerPhone = form.buyer().phoneNumber() != null ? form.buyer().phoneNumber() : "";
-            if (shippingAddress.getCompanyName() == null && form.buyer().companyName() != null) {
-                shippingAddress.setCompanyName(form.buyer().companyName());
-            }
+        final String deliveryPhone = shippingAddress.getPhoneNumber() != null ? shippingAddress.getPhoneNumber() : "";
+
+        if (form.buyer() == null) {
+            return new BuyerInfo("", "", null, deliveryPhone);
         }
-        String phone = !deliveryPhone.isEmpty() ? deliveryPhone : buyerPhone;
+
+        final String email = form.buyer().email() != null ? form.buyer().email() : "";
+        final String username = form.buyer().login() != null ? form.buyer().login() : "";
+        final Boolean isGuest = form.buyer().guest();
+        final String buyerPhone = form.buyer().phoneNumber() != null ? form.buyer().phoneNumber() : "";
+
+        if (shippingAddress.getCompanyName() == null && form.buyer().companyName() != null) {
+            shippingAddress.setCompanyName(form.buyer().companyName());
+        }
+
+        final String phone = !deliveryPhone.isEmpty() ? deliveryPhone : buyerPhone;
         return new BuyerInfo(email, username, isGuest, phone);
     }
 
     private PaymentInfo extractPaymentInfo(CheckoutForm form) {
-        BigDecimal totalAmount = BigDecimal.ZERO;
-        String currency = DEFAULT_CURRENCY;
-        LocalDateTime paymentAt = null;
+        final BigDecimal totalAmount;
+        final String currency;
         if (form.summary() != null && form.summary().totalToPay() != null) {
             totalAmount = extractPrice(form.summary().totalToPay());
             currency = extractCurrency(form.summary().totalToPay());
+        } else {
+            totalAmount = BigDecimal.ZERO;
+            currency = DEFAULT_CURRENCY;
         }
+
+        final LocalDateTime paymentAt;
         if (form.payment() != null && form.payment().finishedAt() != null) {
             paymentAt = LocalDateTime.ofInstant(form.payment().finishedAt(), ZoneId.systemDefault());
+        } else {
+            paymentAt = null;
         }
+
         return new PaymentInfo(totalAmount, currency, paymentAt);
     }
 
     private DeliveryInfo extractDeliveryInfo(CheckoutForm form) {
-        BigDecimal shippingCost = BigDecimal.ZERO;
-        String shippingCostCurrency = DEFAULT_CURRENCY;
-        String methodId = null;
-        String methodName = null;
-        String pickupPointId = null;
-        Boolean isSmart = null;
-        if (form.delivery() != null) {
-            isSmart = form.delivery().smart();
-            if (form.delivery().cost() != null) {
-                shippingCost = extractPrice(form.delivery().cost());
-                shippingCostCurrency = extractCurrency(form.delivery().cost());
-            }
-            if (form.delivery().method() != null) {
-                methodId = form.delivery().method().id();
-                methodName = form.delivery().method().name();
-            }
-            if (form.delivery().pickupPoint() != null) {
-                pickupPointId = form.delivery().pickupPoint().id();
-            }
+        if (form.delivery() == null) {
+            return new DeliveryInfo(BigDecimal.ZERO, DEFAULT_CURRENCY, null, null, null, null);
         }
+
+        final Boolean isSmart = form.delivery().smart();
+
+        final BigDecimal shippingCost;
+        final String shippingCostCurrency;
+        if (form.delivery().cost() != null) {
+            shippingCost = extractPrice(form.delivery().cost());
+            shippingCostCurrency = extractCurrency(form.delivery().cost());
+        } else {
+            shippingCost = BigDecimal.ZERO;
+            shippingCostCurrency = DEFAULT_CURRENCY;
+        }
+
+        final String methodId;
+        final String methodName;
+        if (form.delivery().method() != null) {
+            methodId = form.delivery().method().id();
+            methodName = form.delivery().method().name();
+        } else {
+            methodId = null;
+            methodName = null;
+        }
+
+        final String pickupPointId;
+        if (form.delivery().pickupPoint() != null) {
+            pickupPointId = form.delivery().pickupPoint().id();
+        } else {
+            pickupPointId = null;
+        }
+
         return new DeliveryInfo(shippingCost, shippingCostCurrency, methodId, methodName, pickupPointId, isSmart);
     }
 
     private InvoiceInfo extractInvoiceInfo(CheckoutForm form) {
-        Boolean needsInvoice = null;
-        InvoiceDetails details = null;
-        if (form.invoice() != null) {
-            needsInvoice = form.invoice().required();
-            if (form.invoice().required() && form.invoice().address() != null) {
-                details = new InvoiceDetails();
-                details.setNeedsInvoice(true);
-                CheckoutForm.InvoiceAddress addr = form.invoice().address();
-                details.setStreet(addr.street());
-                details.setCity(addr.city());
-                details.setZipCode(addr.zipCode());
-                details.setCountryCode(addr.countryCode());
-                if (addr.company() != null) {
-                    details.setCompanyName(addr.company().name());
-                    details.setTaxId(addr.company().taxId());
-                }
-            }
+        if (form.invoice() == null) {
+            return new InvoiceInfo(null, null);
         }
+
+        final Boolean needsInvoice = form.invoice().required();
+        final InvoiceDetails details = extractInvoiceDetails(form.invoice());
+
         return new InvoiceInfo(needsInvoice, details);
+    }
+
+    private InvoiceDetails extractInvoiceDetails(CheckoutForm.Invoice invoice) {
+        if (!Boolean.TRUE.equals(invoice.required()) || invoice.address() == null) {
+            return null;
+        }
+
+        final InvoiceDetails details = new InvoiceDetails();
+        details.setNeedsInvoice(true);
+
+        final CheckoutForm.InvoiceAddress addr = invoice.address();
+        details.setStreet(addr.street());
+        details.setCity(addr.city());
+        details.setZipCode(addr.zipCode());
+        details.setCountryCode(addr.countryCode());
+
+        if (addr.company() != null) {
+            details.setCompanyName(addr.company().name());
+            details.setTaxId(addr.company().taxId());
+        }
+
+        return details;
     }
 
     private BigDecimal extractPrice(Price price) {
