@@ -284,7 +284,7 @@ public class AllegroSyncService {
     }
 
     private InvoiceDetails extractInvoiceDetails(CheckoutForm.Invoice invoice) {
-        if (!Boolean.TRUE.equals(invoice.required()) || invoice.address() == null) {
+        if (!invoice.required() || invoice.address() == null) {
             return null;
         }
 
