@@ -1,4 +1,4 @@
-package pl.monmat.manager.api;
+package pl.monmat.manager.api.order;
 
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -7,14 +7,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.monmat.manager.api.dto.CreateOrderRequest;
-import pl.monmat.manager.api.dto.PatchOrderRequest;
-import pl.monmat.manager.api.service.OrderService;
+import pl.monmat.manager.api.order.dto.CreateOrderRequest;
+import pl.monmat.manager.api.order.dto.PatchOrderRequest;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
+@RequestMapping("/api/orders")
 public class OrderController {
     private final OrderRepository repository;
     private final OrderService orderService;
@@ -24,45 +23,35 @@ public class OrderController {
         this.orderService = orderService;
     }
 
-    @GetMapping("/api/orders")
+    @GetMapping
     public Page<Order> getAll(
-            @RequestParam(defaultValue = "0")   Integer page,
+            @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "100") Integer size
     ) {
         Sort sort = Sort.by("id").descending();
-        return repository.findAll(PageRequest.of(
-                page,
-                size,
-                sort
-        ));
+        return repository.findAll(PageRequest.of(page, size, sort));
     }
 
-    @GetMapping("/api/orders/{uuid}")
-    public Optional<Order> getOrderByUuid(@PathVariable UUID uuid) {
-        return repository.findByUuid(uuid);
+    @GetMapping("/{uuid}")
+    public ResponseEntity<Order> getOrderByUuid(@PathVariable UUID uuid) {
+        return repository.findByUuid(uuid)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/api/orders")
+    @PostMapping
     public ResponseEntity<Order> create(@RequestBody @Valid CreateOrderRequest request) {
-
         Order savedOrder = orderService.createOrder(request);
-
-        // return 201 - created status
         return ResponseEntity.status(HttpStatus.CREATED).body(savedOrder);
     }
 
-    @PatchMapping("/api/orders/{uuid}")
+    @PatchMapping("/{uuid}")
     public ResponseEntity<Order> patchOrder(
             @PathVariable UUID uuid,
-            @RequestBody PatchOrderRequest patch) {
-
-        try {
-            Order updatedOrder = orderService.patchOrder(uuid, patch);
-            return ResponseEntity.ok(updatedOrder);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
+            @RequestBody PatchOrderRequest patch
+    ) {
+        return orderService.patchOrder(uuid, patch)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
-
-
 }

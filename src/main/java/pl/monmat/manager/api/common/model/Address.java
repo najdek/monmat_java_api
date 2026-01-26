@@ -1,4 +1,4 @@
-package pl.monmat.manager.api.json;
+package pl.monmat.manager.api.common.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,10 +9,11 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class InvoiceDetails implements Serializable {
-    private boolean needsInvoice;
+public class Address implements Serializable {
+    private String firstName;
+    private String lastName;
     private String companyName;
-    private String taxId; // NIP
+    private String phoneNumber;
     private String street;
     private String city;
     private String zipCode;

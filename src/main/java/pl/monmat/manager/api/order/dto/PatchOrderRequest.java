@@ -1,4 +1,4 @@
-package pl.monmat.manager.api.dto;
+package pl.monmat.manager.api.order.dto;
 
 import java.time.LocalDateTime;
 
@@ -16,4 +16,3 @@ public record PatchOrderRequest(
         String pickupPointId
 ) {
 }
-
