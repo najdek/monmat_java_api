@@ -1,6 +1,7 @@
 package pl.monmat.manager.api.order;
 
 import jakarta.transaction.Transactional;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import pl.monmat.manager.api.order.dto.CreateOrderRequest;
 import pl.monmat.manager.api.order.dto.OrderItemRequest;
@@ -28,7 +29,7 @@ public class OrderService {
         if (request.externalOrderId() != null && !request.externalOrderId().isEmpty()) {
             Optional<Order> existing = orderRepository.findByExternalOrderId(request.externalOrderId());
             if (existing.isPresent()) {
-                return existing.get();
+                throw new DataIntegrityViolationException("Order with externalOrderId " + request.externalOrderId() + " already exists");
             }
         }
         Order order = new Order();
